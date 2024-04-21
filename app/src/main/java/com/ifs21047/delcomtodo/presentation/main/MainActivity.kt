@@ -23,6 +23,7 @@ import com.ifs21047.delcomtodo.presentation.login.LoginActivity
 import com.ifs21047.delcomtodo.presentation.login.MainViewModel
 import com.ifs21047.delcomtodo.presentation.profile.ProfileActivity
 import com.ifs21047.delcomtodo.presentation.todo.TodoDetailActivity
+import com.ifs21047.delcomtodo.presentation.todo.TodoFavoriteActivity
 import com.ifs21047.delcomtodo.presentation.todo.TodoManageActivity
 
 class MainActivity : AppCompatActivity() {
@@ -69,6 +70,10 @@ class MainActivity : AppCompatActivity() {
             when (menuItem.itemId) {
                 R.id.mainMenuProfile -> {
                     openProfileActivity()
+                    true
+                }
+                R.id.mainMenuFavoriteTodos -> {
+                    openFavoriteTodoActivity()
                     true
                 }
                 R.id.mainMenuLogout -> {
@@ -227,6 +232,13 @@ class MainActivity : AppCompatActivity() {
             TodoManageActivity::class.java
         )
         intent.putExtra(TodoManageActivity.KEY_IS_ADD, true)
+        launcher.launch(intent)
+    }
+    private fun openFavoriteTodoActivity() {
+        val intent = Intent(
+            this@MainActivity,
+            TodoFavoriteActivity::class.java
+        )
         launcher.launch(intent)
     }
 }

@@ -15,6 +15,9 @@
         android:theme="@style/Theme.DelcomTodo"
         tools:targetApi="31">
         <activity
+            android:name=".presentation.todo.TodoFavoriteActivity"
+            android:exported="false" />
+        <activity
             android:name=".presentation.todo.TodoViewModel"
             android:exported="false" />
         <activity

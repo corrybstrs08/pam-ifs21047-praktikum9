@@ -9,6 +9,8 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.ifs18005.delcomtodo.data.remote.response.TodoResponse
+import com.ifs21047.delcomtodo.R
+import com.ifs21047.delcomtodo.data.local.entity.DelcomTodoEntity
 import com.ifs21047.delcomtodo.data.model.DelcomTodo
 import com.ifs21047.delcomtodo.data.remot.MyResult
 import com.ifs21047.delcomtodo.databinding.ActivityTodoDetailBinding
@@ -20,7 +22,8 @@ class TodoDetailActivity : AppCompatActivity() {
     private val viewModel by viewModels<TodoViewModel> {
         ViewModelFactory.getInstance(this)
     }
-    private var isChanged: Boolean = false
+    private var isFavorite: Boolean = false
+    private var delcomTodo: DelcomTodoEntity? = null
     private val launcher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -48,7 +51,7 @@ class TodoDetailActivity : AppCompatActivity() {
         observeGetTodo(todoId)
         binding.appbarTodoDetail.setNavigationOnClickListener {
             val resultIntent = Intent()
-            resultIntent.putExtra(KEY_IS_CHANGED, isChanged)
+            resultIntent.putExtra(KEY_IS_CHANGED, true)
             setResult(RESULT_CODE, resultIntent)
             finishAfterTransition()
         }
@@ -81,6 +84,14 @@ class TodoDetailActivity : AppCompatActivity() {
             tvTodoDetailTitle.text = todo.title
             tvTodoDetailDate.text = "Dibuat pada: ${todo.createdAt}"
             tvTodoDetailDesc.text = todo.description
+            viewModel.getLocalTodo(todo.id).observeOnce {
+                if(it != null){
+                    delcomTodo = it
+                    setFavorite(true)
+                }else{
+                    setFavorite(false)
+                }
+            }
             cbTodoDetailIsFinished.isChecked = todo.isFinished == 1
             cbTodoDetailIsFinished.setOnCheckedChangeListener { _, isChecked ->
                 viewModel.putTodo(
@@ -119,12 +130,39 @@ class TodoDetailActivity : AppCompatActivity() {
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
-                            if ((todo.isFinished == 1) != isChecked) {
-                                isChanged = true
-                            }
                         }
                         else -> {}
                     }
+                }
+            }
+            ivTodoDetailActionFavorite.setOnClickListener {
+                if(isFavorite){
+                    setFavorite(false)
+                    if(delcomTodo != null){
+                        viewModel.deleteLocalTodo(delcomTodo!!)
+                    }
+                    Toast.makeText(
+                        this@TodoDetailActivity,
+                        "Todo berhasil dihapus dari daftar favorite",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }else{
+                    delcomTodo = DelcomTodoEntity(
+                        id = todo.id,
+                        title = todo.title,
+                        description = todo.description,
+                        isFinished = todo.isFinished,
+                        cover = todo.cover,
+                        createdAt = todo.createdAt,
+                        updatedAt = todo.updatedAt,
+                    )
+                    setFavorite(true)
+                    viewModel.insertLocalTodo(delcomTodo!!)
+                    Toast.makeText(
+                        this@TodoDetailActivity,
+                        "Todo berhasil ditambahkan ke daftar favorite",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
             ivTodoDetailActionDelete.setOnClickListener {
@@ -158,6 +196,16 @@ class TodoDetailActivity : AppCompatActivity() {
             }
         }
     }
+    private fun setFavorite(status: Boolean){
+        isFavorite = status
+        if(status){
+            binding.ivTodoDetailActionFavorite
+                .setImageResource(R.drawable.ic_favorite_24)
+        }else{
+            binding.ivTodoDetailActionFavorite
+                .setImageResource(R.drawable.ic_favorite_border_24)
+        }
+    }
     private fun observeDeleteTodo(todoId: Int) {
         showComponent(false)
         showLoading(true)
@@ -179,6 +227,11 @@ class TodoDetailActivity : AppCompatActivity() {
                         "Berhasil menghapus todo",
                         Toast.LENGTH_SHORT
                     ).show()
+                    viewModel.getLocalTodo(todoId).observeOnce {
+                        if(it != null){
+                            viewModel.deleteLocalTodo(it)
+                        }
+                    }
                     val resultIntent = Intent()
                     resultIntent.putExtra(KEY_IS_CHANGED, true)
                     setResult(RESULT_CODE, resultIntent)
