@@ -2,9 +2,10 @@ package com.ifs21047.delcomtodo.data.repository
 
 import com.google.gson.Gson
 import com.ifs21047.delcomtodo.data.remot.MyResult
-import com.ifs21047.delcomtodo.data.remot.retrofit.IApiService
 import com.ifs21047.delcomtodo.data.remot.response.DelcomResponse
+import com.ifs21047.delcomtodo.data.remot.retrofit.IApiService
 import kotlinx.coroutines.flow.flow
+import okhttp3.MultipartBody
 import retrofit2.HttpException
 class TodoRepository private constructor(
     private val apiService: IApiService,
@@ -107,8 +108,28 @@ class TodoRepository private constructor(
     ) = flow {
         emit(MyResult.Loading)
         try {
-//get success message
+            //get success message
             emit(MyResult.Success(apiService.deleteTodo(todoId)))
+        } catch (e: HttpException) {
+            //get error message
+            val jsonInString = e.response()?.errorBody()?.string()
+            emit(
+                MyResult.Error(
+                    Gson()
+                        .fromJson(jsonInString, DelcomResponse::class.java)
+                        .message
+                )
+            )
+        }
+    }
+    fun addCoverTodo(
+        todoId: Int,
+        cover: MultipartBody.Part,
+    ) = flow {
+        emit(MyResult.Loading)
+        try {
+            //get success message
+            emit(MyResult.Success(apiService.addCoverTodo(todoId, cover)))
         } catch (e: HttpException) {
             //get error message
             val jsonInString = e.response()?.errorBody()?.string()

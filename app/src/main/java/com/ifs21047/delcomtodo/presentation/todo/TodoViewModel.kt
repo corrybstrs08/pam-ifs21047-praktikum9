@@ -11,7 +11,7 @@ import com.ifs21047.delcomtodo.data.remote.response.DataAddTodoResponse
 import com.ifs21047.delcomtodo.data.repository.LocalTodoRepository
 import com.ifs21047.delcomtodo.data.repository.TodoRepository
 import com.ifs21047.delcomtodo.presentation.ViewModelFactory
-
+import okhttp3.MultipartBody
 class TodoViewModel(
     private val todoRepository: TodoRepository,
     private val localTodoRepository: LocalTodoRepository
@@ -55,6 +55,12 @@ class TodoViewModel(
     }
     fun deleteLocalTodo(todo: DelcomTodoEntity) {
         localTodoRepository.delete(todo)
+    }
+    fun addCoverTodo(
+        todoId: Int,
+        cover: MultipartBody.Part,
+    ): LiveData<MyResult<DelcomResponse>> {
+        return todoRepository.addCoverTodo(todoId, cover).asLiveData()
     }
     companion object {
         @Volatile
